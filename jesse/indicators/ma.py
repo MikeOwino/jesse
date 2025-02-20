@@ -17,15 +17,71 @@ def ma(candles: np.ndarray, period: int = 30, matype: int = 0,  source_type: str
     :param sequential: bool - default: False
 
     :return: float | np.ndarray
+
+    0: sma (simple)
+    1: ema (exponential)
+    2: wma (weighted)
+    3: dema (double exponential)
+    4: tema (triple exponential)
+    5: trima (triangular)
+    6: kama (Kaufman adaptive)
+    9: fwma (Fibonacci's Weighted Moving Average)
+    10: hma (Hull Moving Average)
+    11: linearreg (Linear Regression)
+    12: wilders (Wilders Smoothing)
+    13: sinwma (Sine Weighted Moving Average)
+    14: supersmoother (Super Smoother Filter 2pole Butterworth)
+    15: supersmoother\_3\_pole(Super Smoother Filter 3pole Butterworth)
+    16: gauss (Gaussian Filter)
+    17: high\_pass (1-pole High Pass Filter by John F. Ehlers)
+    18: high\_pass\_2\_pole (2-pole High Pass Filter by John F. Ehlers)
+    19: ht\_trendline (Hilbert Transform - Instantaneous Trendline)
+    20: jma (Jurik Moving Average)
+    21: reflex (Reflex indicator by John F. Ehlers)
+    22: trendflex (Trendflex indicator by John F. Ehlers)
+    23: smma (Smoothed Moving Average)
+    24: vwma (Volume Weighted Moving Average)
+    25: pwma (Pascals Weighted Moving Average)
+    26: swma (Symmetric Weighted Moving Average)
+    27: alma (Arnaud Legoux Moving Average)
+    28: hwma (Holt-Winter Moving Average)
+    29: vwap (Volume weighted average price)
+    30: nma (Natural Moving Average)
+    31: edcf (Ehlers Distance Coefficient Filter)
+    32: mwdx (MWDX Average)
+    33: maaq (Moving Average Adaptive Q)
+    34: srwma (Square Root Weighted Moving Average)
+    35: sqwma (Square Weighted Moving Average)
+    36: vpwma (Variable Power Weighted Moving Average)
+    37: cwma (Cubed Weighted Moving Average)
+    38: jsa (Jsa Moving Average)
+    39: epma (End Point Moving Average)
+
     """
 
     candles = slice_candles(candles, sequential)
 
-    if matype <= 8:
-        from talib import MA
-        if len(candles.shape) != 1:
-            candles = get_candle_source(candles, source_type=source_type)
-        res = MA(candles, timeperiod=period, matype=matype)
+    if matype == 0:
+        from . import sma
+        res = sma(candles, period, source_type=source_type, sequential=True)
+    elif matype == 1:
+        from . import ema
+        res = ema(candles, period, source_type=source_type, sequential=True)
+    elif matype == 2:
+        from . import wma
+        res = wma(candles, period, source_type=source_type, sequential=True)
+    elif matype == 3:
+        from . import dema
+        res = dema(candles, period, source_type=source_type, sequential=True)
+    elif matype == 4:
+        from . import tema
+        res = tema(candles, period, source_type=source_type, sequential=True)
+    elif matype == 5:
+        from . import trima
+        res = trima(candles, period, source_type=source_type, sequential=True)
+    elif matype == 6:
+        from . import kama
+        res = kama(candles, period, source_type=source_type, sequential=True)
     elif matype == 9:
         from . import fwma
         res = fwma(candles, period, source_type=source_type, sequential=True)
@@ -33,10 +89,8 @@ def ma(candles: np.ndarray, period: int = 30, matype: int = 0,  source_type: str
         from . import hma
         res = hma(candles, period, source_type=source_type,  sequential=True)
     elif matype == 11:
-        from talib import LINEARREG
-        if len(candles.shape) != 1:
-            candles = get_candle_source(candles, source_type=source_type)
-        res = LINEARREG(candles, period)
+        from . import linearreg
+        res = linearreg(candles, period, source_type=source_type, sequential=True)
     elif matype == 12:
         from . import wilders
         res = wilders(candles, period, source_type=source_type,  sequential=True)
@@ -58,11 +112,6 @@ def ma(candles: np.ndarray, period: int = 30, matype: int = 0,  source_type: str
     elif matype == 18:
         from . import high_pass_2_pole
         res = high_pass_2_pole(candles, period, source_type=source_type,  sequential=True)
-    elif matype == 19:
-        from talib import HT_TRENDLINE
-        if len(candles.shape) != 1:
-            candles = get_candle_source(candles, source_type=source_type)
-        res = HT_TRENDLINE(candles)
     elif matype == 20:
         from . import jma
         res = jma(candles, period, source_type=source_type,  sequential=True)
@@ -127,5 +176,7 @@ def ma(candles: np.ndarray, period: int = 30, matype: int = 0,  source_type: str
     elif matype == 39:
         from . import epma
         res = epma(candles, period, source_type=source_type,  sequential=True)
+    elif matype == 7 or matype == 8 or matype == 19:
+        raise ValueError("Invalid matype value.")
 
     return res if sequential else res[-1]

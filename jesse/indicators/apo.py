@@ -1,9 +1,9 @@
 from typing import Union
 
 import numpy as np
-from jesse.indicators.ma import ma
 
 from jesse.helpers import get_candle_source, slice_candles
+from jesse.indicators.ma import ma
 
 
 def apo(candles: np.ndarray, fast_period: int = 12, slow_period: int = 26, matype: int = 0, source_type: str = "close",
@@ -24,6 +24,9 @@ def apo(candles: np.ndarray, fast_period: int = 12, slow_period: int = 26, matyp
 
     source = get_candle_source(candles, source_type=source_type)
 
-    res = ma(source, period=fast_period, matype=matype, sequential=True) - ma(source, period=slow_period, matype=matype, sequential=True)
+    if matype == 24 or matype == 29:
+        res = ma(candles, period=fast_period, matype=matype, source_type=source_type, sequential=True) - ma(candles, period=slow_period, matype=matype, source_type=source_type, sequential=True)
+    else:
+        res = ma(source, period=fast_period, matype=matype, sequential=True) - ma(source, period=slow_period, matype=matype, sequential=True)
 
     return res if sequential else res[-1]

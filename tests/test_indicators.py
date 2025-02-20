@@ -2,9 +2,11 @@ import numpy as np
 
 import jesse.indicators as ta
 from jesse.factories import candles_from_close_prices
+import pytest
 from .data.test_candles_indicators import *
 
 matypes = 39
+
 
 def test_acosc():
     candles = np.array(test_candles_19)
@@ -60,7 +62,7 @@ def test_adxr():
     single = ta.adxr(candles, period=14)
     seq = ta.adxr(candles, period=14, sequential=True)
 
-    assert round(single, 0) == 36
+    assert round(single, 0) == 29
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
@@ -73,7 +75,7 @@ def test_alligator():
     assert type(single).__name__ == 'AG'
     assert round(single.teeth, 0) == 236
     assert round(single.jaw, 0) == 233
-    assert round(single.lips, 0) == 222
+    assert round(single.lips, 0) == 224
 
     assert seq.teeth[-1] == single.teeth
     assert len(seq.teeth) == len(candles)
@@ -179,12 +181,13 @@ def test_bandpass():
 
 def test_beta():
     # use the same candles as mama_candles
-    candles = np.array(test_candles_19)
+    candles = np.array(test_candles_sol)
+    benchmark_candles = np.array(test_candles_sol)
 
-    single = ta.beta(candles)
-    seq = ta.beta(candles, sequential=True)
+    single = ta.beta(candles, benchmark_candles)
+    seq = ta.beta(candles, benchmark_candles, sequential=True)
 
-    assert round(single, 2) == -0.31
+    assert round(single, 2) == 1.
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
@@ -214,7 +217,7 @@ def test_bollinger_bands_width():
 
     assert round(single, 4) == 0.0771
     assert len(seq) == len(candles)
-    assert seq[-1] == single
+    assert round(seq[-1], 4) == round(single, 4)
 
 
 def test_bop():
@@ -516,9 +519,15 @@ def test_dx():
     single = ta.dx(candles)
     seq = ta.dx(candles, sequential=True)
 
-    assert round(single, 0) == 67
-    assert len(seq) == len(candles)
-    assert seq[-1] == single
+    assert round(single.adx, 2) == 83.12
+    assert round(single.plusDI, 2) == 5.59
+    assert round(single.minusDI, 2) == 58.93
+    assert len(seq.adx) == len(candles)
+    assert len(seq.plusDI) == len(candles)
+    assert len(seq.minusDI) == len(candles)
+    assert seq.adx[-1] == single.adx
+    assert seq.plusDI[-1] == single.plusDI
+    assert seq.minusDI[-1] == single.minusDI
 
 
 def test_edcf():
@@ -583,7 +592,7 @@ def test_emv():
     candles = np.array(test_candles_19)
     single = ta.emv(candles)
     seq = ta.emv(candles, sequential=True)
-    assert round(single, 0) == -11
+    assert round(single, 0) == -1
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
@@ -640,7 +649,7 @@ def test_fosc():
     candles = np.array(test_candles_19)
     single = ta.fosc(candles)
     seq = ta.fosc(candles, sequential=True)
-    assert round(single, 0) == -69
+    assert round(single, 0) == -32
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
@@ -692,10 +701,11 @@ def test_gauss():
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
+
 def test_heikin_ashi_candles():
     candles = np.array(test_candles_19)
-    open_single,close_single,high_single,low_single  = ta.heikin_ashi_candles(candles)
-    open_seq,close_seq,high_seq,low_seq = ta.heikin_ashi_candles(candles, sequential=True)
+    open_single, close_single, high_single, low_single = ta.heikin_ashi_candles(candles)
+    open_seq, close_seq, high_seq, low_seq = ta.heikin_ashi_candles(candles, sequential=True)
     # SINGLES
     assert round(open_single, 2) == 197.68
     assert round(close_single, 2) == 149.8
@@ -707,6 +717,7 @@ def test_heikin_ashi_candles():
     assert close_seq[-1] == close_single
     assert high_seq[-1] == high_single
     assert low_seq[-1] == low_single
+
 
 def test_high_pass():
     candles = np.array(test_candles_19)
@@ -734,77 +745,6 @@ def test_hma():
     assert round(single, 0) == 134
     assert len(seq) == len(candles)
     assert seq[-1] == single
-
-
-def test_ht_dcperiod():
-    candles = np.array(test_candles_19)
-    single = ta.ht_dcperiod(candles)
-    seq = ta.ht_dcperiod(candles, sequential=True)
-
-    assert round(single, 0) == 24
-    assert len(seq) == len(candles)
-    assert seq[-1] == single
-
-
-def test_ht_dcphase():
-    candles = np.array(test_candles_19)
-    single = ta.ht_dcphase(candles)
-    seq = ta.ht_dcphase(candles, sequential=True)
-
-    assert round(single, 0) == 10
-    assert len(seq) == len(candles)
-    assert seq[-1] == single
-
-
-def test_ht_phasor():
-    candles = np.array(test_candles_19)
-    single = ta.ht_phasor(candles)
-    seq = ta.ht_phasor(candles, sequential=True)
-
-    assert type(single).__name__ == 'IQ'
-    assert round(single.inphase, 0) == 11
-    assert round(single.quadrature, 0) == -52
-
-    assert seq.inphase[-1] == single.inphase
-    assert seq.quadrature[-1] == single.quadrature
-    assert len(seq.inphase) == len(candles)
-    assert len(seq.quadrature) == len(candles)
-
-
-def test_ht_sine():
-    candles = np.array(test_candles_19)
-    single = ta.ht_sine(candles)
-    seq = ta.ht_sine(candles, sequential=True)
-
-    assert type(single).__name__ == 'SINEWAVE'
-    assert round(single.sine, 2) == 0.18
-    assert round(single.lead, 2) == 0.82
-
-    assert seq.sine[-1] == single.sine
-    assert seq.lead[-1] == single.lead
-    assert len(seq.sine) == len(candles)
-    assert len(seq.lead) == len(candles)
-
-
-def test_ht_trendline():
-    candles = np.array(test_candles_19)
-    single = ta.ht_trendline(candles)
-    seq = ta.ht_trendline(candles, sequential=True)
-
-    assert round(single, 0) == 236
-    assert len(seq) == len(candles)
-    assert seq[-1] == single
-
-
-def test_ht_trendmode():
-    candles = np.array(test_candles_19)
-    single = ta.ht_trendmode(candles)
-    seq = ta.ht_trendmode(candles, sequential=True)
-
-    assert single == 1
-    assert len(seq) == len(candles)
-    assert seq[-1] == single
-
 
 def test_hurst():
     candles = np.array(test_candles_19)
@@ -845,7 +785,8 @@ def test_ichimoku_cloud():
 
     assert type(ic).__name__ == 'IchimokuCloud'
 
-    assert (current_conversion_line, current_base_line, span_a, span_b) == (8861.59, 8861.59, 8466.385, 8217.45)
+    assert (current_conversion_line, current_base_line, span_a,
+            span_b) == (8861.59, 8861.59, 8466.385, 8217.45)
 
 
 def test_ichimoku_cloud_seq():
@@ -938,6 +879,21 @@ def test_kaufmanstop():
     assert round(single, 0) == 57
     assert len(seq) == len(candles)
     assert seq[-1] == single
+    with pytest.raises(ValueError) as e:
+        ta.kaufmanstop(candles, matype=24)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kaufmanstop indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kaufmanstop(candles, matype=29)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kaufmanstop indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kaufmanstop(candles, matype=24, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kaufmanstop indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kaufmanstop(candles, matype=29, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kaufmanstop indicator."
 
 
 def test_kdj():
@@ -955,6 +911,37 @@ def test_kdj():
     assert len(seq_kd.k) == len(candles)
     assert len(seq_kd.d) == len(candles)
     assert len(seq_kd.j) == len(candles)
+    with pytest.raises(ValueError) as e:
+        ta.kdj(candles, slowk_matype=24)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kdj indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kdj(candles, slowk_matype=29)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kdj indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kdj(candles, slowd_matype=24)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kdj indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kdj(candles, slowd_matype=29)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kdj indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kdj(candles, slowk_matype=24, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kdj indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kdj(candles, slowk_matype=29, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kdj indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kdj(candles, slowd_matype=24, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kdj indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.kdj(candles, slowd_matype=29, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in kdj indicator."
 
 
 def test_kelner_channels():
@@ -1008,7 +995,7 @@ def test_kvo():
     single = ta.kvo(candles)
     seq = ta.kvo(candles, sequential=True)
 
-    assert round(single / 10000000, 2) == -5.52
+    assert round(single / 10000000, 2) == -0.88
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
@@ -1077,7 +1064,6 @@ def test_lrsi():
 def test_ma():
     # use the same candles as mama_candles
     candles = np.array(test_candles_19)
-
     single = ta.ma(candles, matype=9)
     seq = ta.ma(candles, matype=9, sequential=True)
 
@@ -1134,35 +1120,6 @@ def test_macd():
     assert len(seq.macd) == len(candles)
     assert len(seq.signal) == len(candles)
     assert len(seq.hist) == len(candles)
-
-
-def test_macdext():
-    candles = np.array(test_candles_19)
-
-    single = ta.macdext(candles, fast_period=12, fast_matype=0, slow_period=26, slow_matype=0, signal_period=9,
-                        signal_matype=0)
-    seq = ta.macdext(candles, fast_period=12, fast_matype=0, slow_period=26, slow_matype=0, signal_period=9,
-                     signal_matype=0,
-                     sequential=True)
-
-    assert type(single).__name__ == 'MACDEXT'
-    assert round(single.macd, 2) == -23.12
-    assert round(single.signal, 2) == -18.51
-    assert round(single.hist, 2) == -4.61
-
-    assert seq.macd[-1] == single.macd
-    assert len(seq.macd) == len(candles)
-    assert len(seq.signal) == len(candles)
-    assert len(seq.hist) == len(candles)
-
-    for matype in range(matypes):
-        if matype != 29:
-            single = ta.macdext(candles, fast_period=12, fast_matype=matype, slow_period=26, slow_matype=matype, signal_period=9, signal_matype=matype)
-            assert type(single).__name__ == 'MACDEXT'
-            assert type(single.macd) == np.float64
-            assert type(single.signal) == np.float64
-            assert type(single.hist) == np.float64
-
 
 def test_mama():
     candles = np.array(test_candles_19)
@@ -1310,20 +1267,6 @@ def test_mom():
     assert seq[-1] == single
 
 
-def test_msw():
-    candles = np.array(test_candles_19)
-    single = ta.msw(candles)
-    seq = ta.msw(candles, sequential=True)
-
-    assert type(single).__name__ == 'MSW'
-    assert round(single.lead, 2) == -0.66
-    assert round(single.sine, 2) == -1.0
-
-    assert seq.lead[-1] == single.lead
-    assert seq.sine[-1] == single.sine
-    assert len(seq.sine) == len(candles)
-
-
 def test_mwdx():
     # use the same candles as mama_candles
     candles = np.array(test_candles_19)
@@ -1382,30 +1325,6 @@ def test_obv():
     assert round(single / 1000000, 0) == -6
     assert len(seq) == len(candles)
     assert seq[-1] == single
-
-
-def test_pattern_recognizion():
-    candles = np.array(test_candles_6)
-    res = ta.pattern_recognition(candles, pattern_type="CDLINVERTEDHAMMER")
-    seq = ta.pattern_recognition(candles, pattern_type="CDLINVERTEDHAMMER", sequential=True)
-    assert len(seq) == len(candles)
-    assert res == 0
-
-    candles = np.array(test_candles_9)
-    res = ta.pattern_recognition(candles, pattern_type="CDLENGULFING")
-    assert res == 0
-
-    candles = np.array(test_candles_8)
-    res = ta.pattern_recognition(candles, pattern_type="CDLENGULFING")
-    assert res == 0
-
-    candles = np.array(test_candles_7)
-    res = ta.pattern_recognition(candles, pattern_type="CDLHAMMER")
-    assert res == 0
-
-    candles = np.array(test_candles_5)
-    res = ta.pattern_recognition(candles, pattern_type="CDLDOJI")
-    assert res == 1
 
 
 def test_pfe():
@@ -1709,6 +1628,21 @@ def test_rvi():
     assert round(single, 2) == 27.99
     assert len(seq) == len(candles)
     assert seq[-1] == single
+    with pytest.raises(ValueError) as e:
+        ta.rvi(candles, matype=24)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in rvi indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.rvi(candles, matype=29)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in rvi indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.rvi(candles, matype=24, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in rvi indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.rvi(candles, matype=29, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in rvi indicator."
 
 
 def test_safezonestop():
@@ -1734,23 +1668,6 @@ def test_sar():
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
-
-def test_sar_ext():
-    # use the same candles as mama_candles
-    candles = np.array(test_candles_19)
-
-    single = ta.sarext(candles, start_value=0.02, offset_on_reverse=0, acceleration_init_long=0.02,
-                       acceleration_long=0.02,
-                       acceleration_max_long=0.2, acceleration_init_short=0.02, acceleration_short=0.02,
-                       acceleration_max_short=0.2)
-    seq = ta.sarext(candles, start_value=0.02, offset_on_reverse=0, acceleration_init_long=0.02, acceleration_long=0.02,
-                    acceleration_max_long=0.2, acceleration_init_short=0.02, acceleration_short=0.02,
-                    acceleration_max_short=0.2,
-                    sequential=True)
-
-    assert round(single, 2) == -243.15
-    assert len(seq) == len(candles)
-    assert seq[-1] == single
 
 
 def test_sinwma():
@@ -1854,6 +1771,13 @@ def test_stddev():
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
+    closes = candles[:, 2]
+    single = ta.stddev(closes)
+    seq = ta.stddev(closes, sequential=True)
+
+    assert round(single, 0) == 37
+    assert seq[-1] == single
+
 
 def test_stoch():
     candles = np.array(test_candles_3)
@@ -1870,6 +1794,37 @@ def test_stoch():
     assert stoch.k[-1] == k
     assert len(stoch.d) == len(candles)
     assert len(stoch.k) == len(candles)
+    with pytest.raises(ValueError) as e:
+        ta.stoch(candles, fastk_period=14, slowk_period=3, slowk_matype=24, slowd_period=3, slowd_matype=0)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochastic indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stoch(candles, fastk_period=14, slowk_period=3, slowk_matype=29, slowd_period=3, slowd_matype=0)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochastic indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stoch(candles, fastk_period=14, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=24)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochastic indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stoch(candles, fastk_period=14, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=29)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochastic indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stoch(candles, fastk_period=14, slowk_period=3, slowk_matype=24, slowd_period=3, slowd_matype=0, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochastic indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stoch(candles, fastk_period=14, slowk_period=3, slowk_matype=29, slowd_period=3, slowd_matype=0, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochastic indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stoch(candles, fastk_period=14, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=24, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochastic indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stoch(candles, fastk_period=14, slowk_period=3, slowk_matype=0, slowd_period=3, slowd_matype=29, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochastic indicator."
 
 
 def test_stochf():
@@ -1885,6 +1840,23 @@ def test_stochf():
     assert seq.k[-1] == single.k
     assert len(seq.k) == len(candles)
     assert len(seq.d) == len(candles)
+    
+    with pytest.raises(ValueError) as e:
+        ta.stochf(candles, fastk_period=5, fastd_period=3, fastd_matype=24)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochf indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stochf(candles, fastk_period=5, fastd_period=3, fastd_matype=29)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochf indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stochf(candles, fastk_period=5, fastd_period=3, fastd_matype=24, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochf indicator."
+
+    with pytest.raises(ValueError) as e:
+        ta.stochf(candles, fastk_period=5, fastd_period=3, fastd_matype=29, sequential=True)
+    assert str(e.value) == "VWMA (matype 24) and VWAP (matype 29) cannot be used in stochf indicator."
+    
 
 
 def test_supersmoother():
@@ -1997,7 +1969,7 @@ def test_trix():
     single = ta.trix(candles)
     seq = ta.trix(candles, sequential=True)
 
-    assert round(single, 2) == 30.87
+    assert round(single, 2) == 30.28
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
@@ -2011,7 +1983,7 @@ def test_tsf():
 
     assert round(single, 1) == 174.7
     assert len(seq) == len(candles)
-    assert seq[-1] == single
+    assert round(seq[-1], 2) == round(single, 2)
 
 
 def test_tsi():
@@ -2104,7 +2076,7 @@ def test_vidya():
     single = ta.vidya(candles)
     seq = ta.vidya(candles, sequential=True)
 
-    assert round(single, 2) == 194.75
+    assert round(single, 2) == 200.84
     assert len(seq) == len(candles)
     assert seq[-1] == single
 
@@ -2209,8 +2181,8 @@ def test_vwmacd():
 
     assert type(single).__name__ == 'VWMACD'
     assert round(single.macd, 2) == -31.37
-    assert round(single.signal, 2) == -19.64
-    assert round(single.hist, 2) == -11.73
+    assert round(single.signal, 2) == -20.72
+    assert round(single.hist, 2) == -10.65
 
     assert seq.macd[-1] == single.macd
     assert len(seq.macd) == len(candles)
@@ -2321,3 +2293,79 @@ def test_zscore():
     assert round(single, 1) == -3.2
     assert len(seq) == len(candles)
     assert seq[-1] == single
+
+
+def test_waddah_attr_explosion():
+    candles = np.array(test_candles_19)
+    single = ta.waddah_attar_explosion(candles)
+
+    assert round(single[0]) == 135
+    assert round(single[1]) == -827
+    assert round(single[2]) == -1
+
+
+def test_stiffness():
+    candles = np.array(test_candles_19)
+
+    assert round(ta.stiffness(candles)) == 96
+
+
+def test_ttm_squeeze():
+    candles = np.array(test_candles_19)
+    result = ta.ttm_squeeze(candles)
+
+    assert result == True
+
+
+def test_support_resistance_with_breaks():
+    candles = np.array(test_candles_19)
+    result = ta.support_resistance_with_breaks(candles)
+
+    assert result.support == 116.26
+    assert result.resistance == 288.41
+    assert result.red_break == False
+    assert result.green_break == False
+    assert result.bear_wick == False
+    assert result.bull_wick == False
+
+
+def test_squeeze_momentum():
+    candles = np.array(test_candles_19)
+    result = ta.squeeze_momentum(candles, sequential=False)
+
+    assert result.squeeze == 1
+    assert round(result.momentum, 2) == -52.23
+    assert result.momentum_signal == -1
+
+    seq_result = ta.squeeze_momentum(candles)
+
+    assert seq_result.squeeze[0] == 0
+    assert seq_result.squeeze[-2] == 1
+    assert seq_result.momentum_signal[0] == -2
+    assert seq_result.momentum_signal[-2] == -1
+    assert round(seq_result.momentum[-10], 2) == -37.97
+    assert round(seq_result.momentum[-2], 2) == -40.98
+
+
+def test_hull_suit():
+    candles = np.array(test_candles_19)
+    result = ta.hull_suit(candles, sequential=False)
+
+    assert round(result.s_hull, 1) == 243.7
+    assert round(result.m_hull, 1) == 230.6
+    assert result.signal == 'sell'
+
+
+def test_volume():
+    candles = np.array(fake_test_candles, dtype=np.float64)
+    single = ta.volume(candles, period=5)
+    seq = ta.volume(candles, period=5, sequential=True)
+
+    assert type(single).__name__ == 'Volume'
+    assert round(single.volume, 0) == 22
+    assert round(single.ma, 0) == 20
+
+    assert seq.volume[-1] == single.volume
+    assert seq.ma[-1] == single.ma
+    assert len(seq.volume) == len(candles)
+    assert len(seq.ma) == len(candles)

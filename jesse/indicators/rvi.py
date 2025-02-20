@@ -1,11 +1,10 @@
 from typing import Union
 
 import numpy as np
-import talib
-from jesse.indicators.ma import ma
+from numpy.lib.stride_tricks import sliding_window_view
 
-from jesse.helpers import get_candle_source, same_length
-from jesse.helpers import slice_candles
+from jesse.helpers import get_candle_source, same_length, slice_candles
+from jesse.indicators.ma import ma
 from jesse.indicators.mean_ad import mean_ad
 from jesse.indicators.median_ad import median_ad
 
@@ -22,12 +21,15 @@ def rvi(candles: np.ndarray, period: int = 10, ma_len: int = 14, matype: int = 1
     :param sequential: bool - default: False
     :return: float | np.ndarray
     """
+    if matype == 24 or matype == 29:
+        raise ValueError("VWMA (matype 24) and VWAP (matype 29) cannot be used in rvi indicator.")
+
     candles = slice_candles(candles, sequential)
 
     source = get_candle_source(candles, source_type=source_type)
 
     if devtype == 0:
-      dev = talib.STDDEV(source, period)
+      dev = _rolling_std(source, period)
     elif devtype == 1:
       dev = mean_ad(source, period, sequential=True)
     elif devtype == 2:
@@ -45,3 +47,11 @@ def rvi(candles: np.ndarray, period: int = 10, ma_len: int = 14, matype: int = 1
     result = 100 * (up_avg / (up_avg + down_avg))
 
     return result if sequential else result[-1]
+
+
+def _rolling_std(arr: np.ndarray, window: int) -> np.ndarray:
+    if len(arr) < window:
+        return np.full(len(arr), np.nan)
+    windows = sliding_window_view(arr, window_shape=window)
+    stds = np.std(windows, axis=1, ddof=0)
+    return np.concatenate((np.full(window - 1, np.nan), stds))
